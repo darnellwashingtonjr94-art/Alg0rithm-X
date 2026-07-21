@@ -1,0 +1,41 @@
+import time
+import math
+
+class HedonicAdaptationModel:
+    """
+    Simulates non-linear hedonic adaptation. Extreme emotional states decay back 
+    to a baseline set-point over time, while sudden contrasts cause sharp spikes.
+    """
+    def __init__(self, set_point: float = 0.5, adaptation_rate: float = 0.05):
+        self.set_point = max(0.0, min(1.0, set_point))
+        self.current_happiness = self.set_point
+        self.adaptation_rate = adaptation_rate
+        self.last_update_time = time.time()
+
+    def apply_stimulus(self, valence: float, intensity: float):
+        """
+        Valence: Direction of the event (-1.0 to 1.0)
+        Intensity: Magnitude of the event (0.0 to 1.0)
+        """
+        # Contrast effect: the impact of the stimulus depends on current state distance
+        contrast_multiplier = 1.0 - abs(self.current_happiness - self.set_point)
+        
+        impact = valence * intensity * contrast_multiplier
+        self.current_happiness = max(0.0, min(1.0, self.current_happiness + impact))
+
+    def step_adaptation(self) -> float:
+        """
+        Applies continuous decay pulling the state back toward the set_point.
+        Should be called in the main simulation loop.
+        """
+        current_time = time.time()
+        dt = current_time - self.last_update_time
+        
+        if dt > 0:
+            # Exponential decay toward the baseline
+            delta = self.set_point - self.current_happiness
+            decay_step = delta * (1 - math.exp(-self.adaptation_rate * dt))
+            self.current_happiness += decay_step
+            self.last_update_time = current_time
+            
+        return self.current_happiness
