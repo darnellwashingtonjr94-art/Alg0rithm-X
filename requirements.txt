@@ -1,0 +1,14 @@
+# --- Mathematics & Core ---
+numpy==1.26.4
+scipy==1.13.0
+
+# --- Quantum Simulation ---
+qiskit==1.0.2
+qiskit-aer==0.14.0.1
+
+# --- Computer Vision & Cloaking ---
+# Using headless to prevent X11/GUI crashes in CI/CD environments
+opencv-python-headless==4.9.0.80
+
+# --- C# AST String Encryption ---
+pycryptodome==3.20.0
