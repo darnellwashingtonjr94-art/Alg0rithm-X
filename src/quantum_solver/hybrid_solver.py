@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, Optional, Union
 
 class HybridVQESolver:
     """
