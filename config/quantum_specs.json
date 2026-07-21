@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ObfuscationProfile version="1.0">
+    <GlobalSettings>
+        <MutationRate>0.85</MutationRate>
+        <Seed>0</Seed> <!-- 0 = Randomize on every compilation -->
+    </GlobalSettings>
+
+    <Rules>
+        <!-- Flatten all linear code blocks into state machines -->
+        <Rule target="ControlFlow" action="Flatten" inject_opaque_predicates="true" />
+        
+        <!-- Encrypt all plain-text strings using AES-256 (Rijndael) -->
+        <Rule target="Strings" action="Encrypt" algorithm="Rijndael" />
+        
+        <!-- Rename variables and methods using unprintable characters or hashes -->
+        <Rule target="Identifiers" action="Rename" pattern="^[a-zA-Z_]+$" mode="hash_sha1" />
+    </Rules>
+
+    <Exclusions>
+        <!-- Prevent breaking the main entry point and system callbacks -->
+        <Exclude namespace="System.*" />
+        <Exclude class="Program" method="Main" />
+        <Exclude attribute="DllImport" />
+    </Exclusions>
+</ObfuscationProfile>
