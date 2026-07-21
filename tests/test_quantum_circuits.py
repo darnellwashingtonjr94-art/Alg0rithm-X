@@ -3,26 +3,23 @@ import numpy as np
 from src.quantum_solver.hybrid_solver import HybridVQESolver
 from src.quantum_solver.cluster_bridge import HPCClusterBridge
 
-class TestQuantumCircuits(unittest.TestCase):
+# Moved outside the class to allow multiprocessing serialization
+def mock_hamiltonian_evaluator(theta: np.ndarray) -> float:
+    """A simple quadratic bowl for the VQE optimizer to solve."""
+    target = np.array([np.pi, np.pi])
+    return float(np.sum((theta - target) ** 2))
 
-    def mock_hamiltonian_evaluator(self, theta: np.ndarray) -> float:
-        """A simple quadratic bowl for the VQE optimizer to solve."""
-        # Minimum should be at theta = [np.pi, np.pi]
-        target = np.array([np.pi, np.pi])
-        return float(np.sum((theta - target) ** 2))
+class TestQuantumCircuits(unittest.TestCase):
 
     def test_vqe_convergence(self):
         """Tests if the COBYLA optimizer successfully minimizes the mock energy."""
-        solver = HybridVQESolver(num_parameters=2, energy_evaluator_fn=self.mock_hamiltonian_evaluator)
+        # Update reference to the detached function
+        solver = HybridVQESolver(num_parameters=2, energy_evaluator_fn=mock_hamiltonian_evaluator)
         
-        # Start at origin
         initial_params = np.array([0.0, 0.0])
         result = solver.solve(initial_theta=initial_params, max_iterations=50)
         
-        # The optimal energy should be very close to 0.0
         self.assertLess(result['optimal_energy'], 0.1)
-        
-        # The parameters should be close to [np.pi, np.pi]
         self.assertAlmostEqual(result['optimal_parameters'][0], np.pi, places=1)
 
     def test_cluster_bridge_sorting(self):
@@ -35,9 +32,9 @@ class TestQuantumCircuits(unittest.TestCase):
             np.array([5.0, 5.0])
         ]
         
-        results = bridge.parallel_energy_evaluation(self.mock_hamiltonian_evaluator, grid)
+        # Update reference to the detached function
+        results = bridge.parallel_energy_evaluation(mock_hamiltonian_evaluator, grid)
         
-        # Best result should be first
         best_energy = results[0]['energy']
         worst_energy = results[-1]['energy']
         
