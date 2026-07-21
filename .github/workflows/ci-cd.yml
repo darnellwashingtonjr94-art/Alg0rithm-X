@@ -1,0 +1,45 @@
+name: Alg0rithm-X Core CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: 'pip' # Speeds up subsequent runs by caching dependencies
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg libsm6 libxext6 # Required for OpenCV and VideoEditorEngine
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # We install headless OpenCV to avoid GUI/X11 errors in the CI runner
+        pip install numpy scipy qiskit opencv-python-headless flake8
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run Unit Tests
+      run: |
+        # Discovers and runs all test_*.py files in the tests/ directory
+        python -m unittest discover -s tests -p "test_*.py" -v
